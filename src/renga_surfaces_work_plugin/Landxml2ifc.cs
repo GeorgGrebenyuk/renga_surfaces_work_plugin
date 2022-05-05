@@ -25,6 +25,7 @@ namespace renga_surfaces
 
         private string path_to_landxml_file = null;
         private Renga.IProject r_project;
+        public string ifc_result_path = null;
         public Landxml2ifc(Renga.IProject r_project)
         {
             this.r_project = r_project;
@@ -195,7 +196,8 @@ namespace renga_surfaces
                 IfcPropertySingleValue surface_name_property = new IfcPropertySingleValue(ifc_db, "surface_name", surface_name);
                 IfcPropertySet new_set = new IfcPropertySet(ifc_element, "surface properties", surface_name_property);
             }
-            ifc_db.WriteFile(path_to_landxml_file.Replace(".xml", $"_{Guid.NewGuid()}.ifc"));
+            ifc_result_path = path_to_landxml_file.Replace(".xml", $"_{Guid.NewGuid()}.ifc");
+            ifc_db.WriteFile(ifc_result_path);
         }
 
     }
