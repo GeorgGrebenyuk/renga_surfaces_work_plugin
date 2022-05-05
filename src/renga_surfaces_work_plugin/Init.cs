@@ -11,37 +11,37 @@ namespace renga_surfaces
     public class Init : Renga.IPlugin
     {
         private List<Renga.ActionEventSource> m_eventSources = new List<Renga.ActionEventSource>();
+        private Renga.IUI ui_current;
+        Renga.IImage create_icon_image (string icon_path)
+        {
+            Renga.IImage image = ui_current.CreateImage();
+            image.LoadFromFile(icon_path);
+            return image;
+        }
 
         public bool Initialize(string pluginFolder)
         {
-            var app = new Renga.Application();
-            var ui = app.UI;
-            var panelExtension = ui.CreateUIPanelExtension();
+            string plugin_dir = pluginFolder.Replace("/", "\\") + "\\";
+            Renga.Application app = new Renga.Application();
+            ui_current = app.UI;
+            Renga.IUIPanelExtension panelExtension = ui_current.CreateUIPanelExtension();
 
             //Create tool-down structure for plugins actions
-            var dropDownButton = ui.CreateDropDownButton();
+            Renga.IDropDownButton dropDownButton = ui_current.CreateDropDownButton();
             dropDownButton.ToolTip = "Plugin's actions";
+            dropDownButton.Icon = create_icon_image(plugin_dir + "main_button.png");
 
             //Create button for converting LandXml to IFC
-            Renga.IAction to_convert = ui.CreateAction();
+            Renga.IAction to_convert = ui_current.CreateAction();
+            to_convert.Icon = create_icon_image(plugin_dir + "load_surface.png");
             to_convert.DisplayName = "Convert LandXml to IFC";
             Renga.ActionEventSource button_event = new Renga.ActionEventSource(to_convert);
             button_event.Triggered += (s, e) =>
             {
-                //string landxml_path = null;
-                //ui.ShowMessageBox(Renga.MessageIcon.MessageIcon_Info, "Message from Sample", "Context menu clicked");
-                //select_file();
-                //void select_file()
-                //{
-                //    OpenFileDialog selection_file = new OpenFileDialog();
-                //    selection_file.Title = "Выберите файл LandXML";
-                //    //selection_file.Filter = "landxml files(*.xml)";
-                //    if (selection_file.ShowDialog() == DialogResult.OK) landxml_path = selection_file.FileName;
-                //    else if (!File.Exists(landxml_path)) select_file();
-                //    else select_file();
-                //}
+                new Landxml2ifc(app.Project); //Landxml2ifc operation = 
+                //app.OpenProject(operation.ifc_result_path);
+                ui_current.ShowMessageBox(Renga.MessageIcon.MessageIcon_Info, "Plugin message", "Операция успещно закончена!");
 
-                new Landxml2ifc(app.Project);
             };
             m_eventSources.Add(button_event);
 
@@ -49,8 +49,8 @@ namespace renga_surfaces
             panelExtension.AddDropDownButton(dropDownButton);
 
 
-            ui.AddExtensionToPrimaryPanel(panelExtension);
-            ui.AddExtensionToActionsPanel(panelExtension, Renga.ViewType.ViewType_View3D);
+            ui_current.AddExtensionToPrimaryPanel(panelExtension);
+            ui_current.AddExtensionToActionsPanel(panelExtension, Renga.ViewType.ViewType_View3D);
 
             return true;
         }
