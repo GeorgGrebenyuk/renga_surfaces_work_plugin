@@ -61,17 +61,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="renga_surfaces.rndesc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Resources\renga_surfaces.rndesc" />
   </ItemGroup>
   <ItemGroup>
     <COMFileReference Include="G:\30_Coding\SDK\RengaSDK\tlb\RengaCOMAPI.tlb">
     </COMFileReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\load_surface.png" />
+    <Content Include="Resources\main_button.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /y "C:\Users\Georg\Documents\GitHub\renga_surfaces_work_plugin\src\renga_surfaces_work_plugin\obj\Debug\Interop.Renga.dll" "$(TargetDir)Interop.Renga.dll"
-</PostBuildEvent>
+copy /y "$(SolutionDir)Resources\load_surface.png" "$(TargetDir)load_surface.png"
+copy /y "$(SolutionDir)Resources\main_button.png" "$(TargetDir)main_button.png"
+copy /y "$(SolutionDir)Resources\renga_surfaces.rndesc" "$(TargetDir)renga_surfaces.rndesc"</PostBuildEvent>
   </PropertyGroup>
 </Project>
