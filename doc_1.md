@@ -26,5 +26,9 @@ IfcLocationY
 IfcLocationZ
 IfcDirectionPrecession
 ```
-Где *IfcLocationX*, *IfcLocationt*, *IfcLocationZ* казываются в мм, а *IfcDirectionPrecession* в градусах.
+Где *IfcLocationX*, *IfcLocationY*, *IfcLocationZ* казываются в мм, а *IfcDirectionPrecession* в градусах.
 **Примечание**: разделитель дробной части следует указывать "точку", а не запятую -- будьте внимательными при заполнении!
+- также следует быть внимальным к файлам xml, так как помимо LandXML существует также похожая структура TopoXML, поддерживаемая Credo и IndorSoft;
+ 
+ ## Демонстрация применения плагина
+ Описана в данном видеоролике. (НАДО СДЕЛАТЬ)
