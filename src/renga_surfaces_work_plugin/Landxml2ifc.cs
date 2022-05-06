@@ -116,6 +116,7 @@ namespace renga_surfaces
             x -= dX;
             y -= dY;
             z -= dZ;
+
             x = x * Math.Cos(angle) - y * Math.Sin(angle);
             y = x * Math.Sin(angle) + y * Math.Cos(angle);
             //z = z;
@@ -166,6 +167,7 @@ namespace renga_surfaces
                 Dictionary<int, Renga.FloatPoint3D> surface_points = list_surface_points[counter_surface];
                 List<int[]> surface_triangles = list_surface_triangles[counter_surface];
                 List<IfcFace> faces = new List<IfcFace>();
+                List<IfcFaceBound> faces_b = new List<IfcFaceBound>();
                 foreach (int[] triangle_definition in surface_triangles)
                 {
                     List<IfcCartesianPoint> ifc_tr_points = new List<IfcCartesianPoint>(3);
@@ -175,10 +177,16 @@ namespace renga_surfaces
                         ifc_tr_points.Add(new IfcCartesianPoint(ifc_db, point.X*1000.0, point.Y * 1000.0, point.Z * 1000.0));
                     }
                     IfcPolyLoop ifc_loop = new IfcPolyLoop(ifc_tr_points);
-                    IfcFaceOuterBound bound = new IfcFaceOuterBound(ifc_loop, true);
-                    faces.Add(new IfcFace(bound));
+                    IfcFaceBound bound_face = new IfcFaceBound(ifc_loop, true);
+                    faces_b.Add(bound_face);
+                    //IfcFaceOuterBound bound = new IfcFaceOuterBound(ifc_loop, true);
+                    //faces.Add(new IfcFace(bound));
                 }
-                IfcFaceBasedSurfaceModel ifc_surf_model = new IfcFaceBasedSurfaceModel(new IfcConnectedFaceSet(faces));
+                IfcFace surf_face_all = new IfcFace(faces_b);
+                //IfcClosedShell shell = new IfcClosedShell(new List<IfcFace>(1) { surf_face_all });
+                //IfcFacetedBrep ifc_surf_model = new IfcFacetedBrep(shell);
+                IfcFaceBasedSurfaceModel ifc_surf_model = new IfcFaceBasedSurfaceModel(new IfcConnectedFaceSet(new List<IfcFace>() { surf_face_all }));
+
                 //Accepting color (style) to object
                 IfcColourRgb ifc_color = new IfcColourRgb(ifc_db, 0.4,0.2,0.0);
                 IfcSurfaceStyleShading ifc_style = new IfcSurfaceStyleShading(ifc_color);
