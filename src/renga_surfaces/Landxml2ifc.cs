@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Renga;
-using GeometryGym.Ifc;
 
 namespace renga_surfaces
 {
@@ -161,58 +160,6 @@ namespace renga_surfaces
                 list_surface_triangles.Add(surface_triangles);
             }
             
-        }
-        private void WriteToIfc()
-        {
-            DatabaseIfc ifc_db = new DatabaseIfc(ModelView.Ifc2x3NotAssigned);
-            IfcSite ifc_site = new IfcSite(ifc_db, "for surfaces");
-            IfcProject ifc_project = new IfcProject(ifc_site, "IfcProject", IfcUnitAssignment.Length.Millimetre) { };
-
-            for (int counter_surface = 0; counter_surface< list_surface_name.Count; counter_surface++)
-            {
-                string surface_name = list_surface_name[counter_surface];
-                Dictionary<int, Renga.FloatPoint3D> surface_points = list_surface_points[counter_surface];
-                List<int[]> surface_triangles = list_surface_triangles[counter_surface];
-                List<IfcFace> faces = new List<IfcFace>();
-                List<IfcFaceBound> faces_b = new List<IfcFaceBound>();
-                foreach (int[] triangle_definition in surface_triangles)
-                {
-                    List<IfcCartesianPoint> ifc_tr_points = new List<IfcCartesianPoint>(3);
-                    foreach (int triangle_def_point in triangle_definition)
-                    {
-                        Renga.FloatPoint3D point = surface_points[triangle_def_point];
-                        ifc_tr_points.Add(new IfcCartesianPoint(ifc_db, point.X*1000.0, point.Y * 1000.0, point.Z * 1000.0));
-                    }
-                    IfcPolyLoop ifc_loop = new IfcPolyLoop(ifc_tr_points);
-                    IfcFaceBound bound_face = new IfcFaceBound(ifc_loop, true);
-                    faces_b.Add(bound_face);
-                    //IfcFaceOuterBound bound = new IfcFaceOuterBound(ifc_loop, true);
-                    //faces.Add(new IfcFace(bound));
-                }
-                IfcFace surf_face_all = new IfcFace(faces_b);
-                //IfcClosedShell shell = new IfcClosedShell(new List<IfcFace>(1) { surf_face_all });
-                //IfcFacetedBrep ifc_surf_model = new IfcFacetedBrep(shell);
-                IfcFaceBasedSurfaceModel ifc_surf_model = new IfcFaceBasedSurfaceModel(new IfcConnectedFaceSet(new List<IfcFace>() { surf_face_all }));
-
-                //Accepting color (style) to object
-                IfcColourRgb ifc_color = new IfcColourRgb(ifc_db, 0.4,0.2,0.0);
-                IfcSurfaceStyleShading ifc_style = new IfcSurfaceStyleShading(ifc_color);
-                IfcSurfaceStyle ifc_style0 = new IfcSurfaceStyle(ifc_style);
-                IfcPresentationStyleAssignment style_assignm = new IfcPresentationStyleAssignment(ifc_style0);
-                IfcStyledItem object_style = new IfcStyledItem(ifc_surf_model, style_assignm);
-
-                IfcShapeRepresentation surface_repr = new IfcShapeRepresentation(ifc_surf_model);
-                IfcProductDefinitionShape result_geometry = new IfcProductDefinitionShape(surface_repr);
-                
-                IfcBuildingElementProxy ifc_element = new IfcBuildingElementProxy(ifc_site, ifc_site.ObjectPlacement, result_geometry);
-                
-                ifc_element.Representation = result_geometry;
-
-                IfcPropertySingleValue surface_name_property = new IfcPropertySingleValue(ifc_db, "surface_name", surface_name);
-                IfcPropertySet new_set = new IfcPropertySet(ifc_element, "surface properties", surface_name_property);
-            }
-            ifc_result_path = path_to_landxml_file.Replace(".xml", $"_{Guid.NewGuid()}.ifc");
-            ifc_db.WriteFile(ifc_result_path);
         }
         private void WriteToText()
         {
