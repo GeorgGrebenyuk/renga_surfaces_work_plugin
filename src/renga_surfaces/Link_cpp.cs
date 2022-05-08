@@ -9,7 +9,7 @@ namespace renga_surfaces
 {
     internal class LibraryImport_x64 : ILibraryImport
     {
-        [DllImport("surface_geom", CallingConvention = CallingConvention.StdCall, ExactSpelling = false, EntryPoint = "run_landxml2iges")]
+        [DllImport("surface_geom.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = false, EntryPoint = "run_landxml2iges")]
         private static extern int run_landxml2iges_internal(char[] dir_path);
 
         public int run_landxml2iges(char[] dir_path)
