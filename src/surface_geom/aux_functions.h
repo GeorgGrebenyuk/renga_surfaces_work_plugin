@@ -12,7 +12,34 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
 }
 void del_from_list_by_edge(std::vector<std::vector<int>>* current_collection, std::vector<int>* what_del)
 {
-    (*current_collection).erase(std::remove((*current_collection).begin(), (*current_collection).end(), *what_del), (*current_collection).end());
+    //int where_is_element = 0;
+    std::vector<std::vector<int>> new_list;
+    for (std::vector<int> one_record : (*current_collection))
+    {
+        if ((one_record.at(0) == (*what_del).at(0) && one_record.at(1) == (*what_del).at(1)) |
+            (one_record.at(0) == (*what_del).at(1) && one_record.at(1) == (*what_del).at(0)))
+        {
+            continue;
+        }
+        else {
+            new_list.push_back(one_record);
+        }
+    }
+    (*current_collection) = new_list;
+}
+bool is_element_in_list(std::vector<std::vector<int>>* current_collection, std::vector<int>* what_find)
+{
+    bool is_el = false;
+    for (std::vector<int> one_record : (*current_collection))
+    {
+        if ((one_record.at(0) == (*what_find).at(0) && one_record.at(1) == (*what_find).at(1)) | 
+            (one_record.at(0) == (*what_find).at(1) && one_record.at(1) == (*what_find).at(0)))
+        {
+            is_el = true;
+            break;
+        }
+    }
+    return is_el;
 }
 void insert_edge_if_not_in(std::vector<std::vector<int>>* current_collection, std::vector<int>* new_item)
 {
@@ -21,14 +48,16 @@ void insert_edge_if_not_in(std::vector<std::vector<int>>* current_collection, st
     else
     {
         std::vector<int> other_var{ new_item->at(1),new_item->at(0) };
-        bool is_var_1 = (std::find((*current_collection).begin(), (*current_collection).end(), (*new_item)) != (*current_collection).end());
-        bool is_var_2 = (std::find((*current_collection).begin(), (*current_collection).end(), &other_var) != (*current_collection).end());
-        if (!is_var_1 && !is_var_2) need_add = true;
+        bool is_var_1 = is_element_in_list(current_collection, new_item);
+        //bool is_var_2 = is_element_in_list(current_collection, &other_var);
+        //Если в списке нет ни первого ни второго вхождения - то добавляем
+        if (is_var_1 == false) need_add = true;
+        //Если в списке есть хотя бы одно вхождение (вариация) грани, значит, необходимо ее удалить из перечня, а новую не вносить
         else
         {
             need_add = false;
             del_from_list_by_edge(current_collection, new_item);
-            del_from_list_by_edge(current_collection, &other_var);
+            //del_from_list_by_edge(current_collection, &other_var);
         }
     }
     if (need_add == true)
@@ -41,7 +70,7 @@ void start_loop(std::vector<std::vector<int>>* current_collection, std::vector<s
 {
     for (std::vector<int> one_edge : (*current_collection))
     {
-        if (one_edge.at(0) == *point_find | one_edge.at(1) == *point_find)
+        if (one_edge.at(0) == (*point_find) | one_edge.at(1) == (*point_find))
         {
             (*outer_collection).push_back(one_edge);
             if (one_edge.at(0) == *point_find) *point_find = one_edge.at(1);
@@ -54,6 +83,11 @@ void start_loop(std::vector<std::vector<int>>* current_collection, std::vector<s
 }
 void get_outer_counter(std::vector<std::vector<int>>* current_collection, std::vector<std::vector<int>>* outer_collection)
 {
+    std::cout << "current indexes" << std::endl;
+    for (std::vector<int> one_record : (*current_collection))
+    {
+        std::cout << one_record.at(0) << " " << one_record.at(1) << std::endl;
+    }
     //Фиксируем начало отбора - одну из "внешних" граней, с удалением ее из первого списка и сохранением во второй - целевой
     std::vector<int> start_edge = (*current_collection).at(0);
     del_from_list_by_edge(current_collection, &start_edge);
@@ -62,6 +96,7 @@ void get_outer_counter(std::vector<std::vector<int>>* current_collection, std::v
     int end_index = start_edge.at(0);
     //Фиксируем индекс точки, равный которому будем искать в дальнейшем обходе всех оставшихся внешних ребер. СМЕННЫЙ ПАРАМЕТР
     int start_going = start_edge.at(1);
+    int last_index = 0;
 
     do {
         start_loop(current_collection, outer_collection, &start_going);
@@ -70,4 +105,3 @@ void get_outer_counter(std::vector<std::vector<int>>* current_collection, std::v
     //- если в нем, значит это внешняя граница. В противном случае  - внутренняя .... хотя блять, есть еще вариант "островка" после внутреннего озера 
     //в общем считаем пока как будто нет границ внутренних
 }
-
