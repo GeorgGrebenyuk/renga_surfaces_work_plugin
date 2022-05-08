@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "renga_surfaces_work_plugin", "renga_surfaces\renga_surfaces.csproj", "{92DBC227-D1A1-4CD2-AC77-3D66D7DAEA64}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "renga_surfaces", "renga_surfaces\renga_surfaces.csproj", "{92DBC227-D1A1-4CD2-AC77-3D66D7DAEA64}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "surface_geom", "surface_geom\surface_geom.vcxproj", "{8608EF02-980D-462A-8E43-F4475790B2D2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "debug_app", "debug_app\debug_app.vcxproj", "{1C15FB10-A57B-49A7-BE82-A032BC86727C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8608EF02-980D-462A-8E43-F4475790B2D2} = {8608EF02-980D-462A-8E43-F4475790B2D2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +44,16 @@ Global
 		{8608EF02-980D-462A-8E43-F4475790B2D2}.Release|x64.Build.0 = Release|x64
 		{8608EF02-980D-462A-8E43-F4475790B2D2}.Release|x86.ActiveCfg = Release|Win32
 		{8608EF02-980D-462A-8E43-F4475790B2D2}.Release|x86.Build.0 = Release|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Debug|x64.ActiveCfg = Debug|x64
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Debug|x64.Build.0 = Debug|x64
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Debug|x86.ActiveCfg = Debug|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Debug|x86.Build.0 = Debug|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Release|Any CPU.ActiveCfg = Release|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Release|x64.ActiveCfg = Release|x64
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Release|x64.Build.0 = Release|x64
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Release|x86.ActiveCfg = Release|Win32
+		{1C15FB10-A57B-49A7-BE82-A032BC86727C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
