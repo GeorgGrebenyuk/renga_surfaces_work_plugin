@@ -105,3 +105,48 @@ void get_outer_counter(std::vector<std::vector<int>>* current_collection, std::v
     //- если в нем, значит это внешняя граница. В противном случае  - внутренняя .... хотя блять, есть еще вариант "островка" после внутреннего озера 
     //в общем считаем пока как будто нет границ внутренних
 }
+void sort_edges_to_unique(std::vector<std::vector<int>> *old_collection, std::vector<std::vector<int>>* new_collection)
+{
+    //Перебираем текущий список ребер и заносим в список на удаление те, которые уже встречаются в данном списке
+    std::vector<std::vector<int>> to_delete;
+    for (std::vector<int> one_record : *old_collection)
+    {
+        int counter_edge = 0;
+        std::vector<int> other_var{ one_record.at(1),one_record.at(0) };
+        for (std::vector<int> one_record_2 : *old_collection)
+        {
+            //если есть ребро с противоположной конфигурацией
+            if (one_record_2.at(0) == one_record.at(1) && one_record_2.at(1) == one_record.at(0))
+            {
+                to_delete.push_back(one_record);
+                to_delete.push_back(other_var);
+                break;
+            }
+            else if (one_record_2.at(0) == one_record.at(0) && one_record_2.at(1) == one_record.at(1))
+            {
+                counter_edge++;
+            }
+        }
+        //Если было найдено 2 таких же ребра
+        if (counter_edge == 2) to_delete.push_back(one_record);
+    }
+    sort((to_delete).begin(), (to_delete).end());
+    (to_delete).erase(unique((to_delete).begin(), (to_delete).end()), (to_delete).end());
+    //Создаем новый список, теперь уже с нужными значениями без ненужных
+
+    for (std::vector<int> one_record : *old_collection)
+    {
+        //std::vector<int> other_var{ one_record.at(1),one_record.at(0) };
+        bool need_add = true;
+        for (std::vector<int> one_record_2 : to_delete)
+        {
+            //one_record_2.at(0) == one_record.at(0) && one_record_2.at(1) == one_record.at(1)
+            if (one_record == one_record_2)
+            {
+                need_add = false;
+            }
+        }
+        if (need_add) (*new_collection).push_back(one_record);
+    }
+    to_delete.clear();
+}
