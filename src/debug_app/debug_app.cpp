@@ -6,7 +6,7 @@
 
 int main()
 {
-    run_landxml2iges("C:\\Users\\Georg\\Documents\\GitHub\\renga_surfaces_work_plugin\\test_data\\NN_71_2.xml");
+    run_landxml2iges("C:\\Users\\Georg\\Documents\\GitHub\\renga_surfaces_work_plugin\\test_data\\push_15_test.xml");
     std::cout << "Hello World!\n";
     return 0;
 }
