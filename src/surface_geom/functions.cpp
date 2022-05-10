@@ -8,6 +8,7 @@
 #include <map>
 #include <algorithm>
 #include "aux_functions.h"
+//#include <stdlib.h>
 //xml parcers
 #include <pugixml.hpp>
 using namespace pugi;
@@ -30,7 +31,9 @@ using namespace pugi;
 #include <BRepBuilderAPI_MakeShape.hxx>
 #include <BRepBuilderAPI_MakeSolid.hxx>
 
-#include <Geom_Curve.hxx>
+#include <BRepCheck_Status.hxx>
+#include <ShapeFix_Solid.hxx>
+#include <ShapeFix_Shell.hxx>
 
 #include <IGESControl_Controller.hxx> 
 #include <IGESControl_Writer.hxx> 
@@ -100,24 +103,30 @@ void run_landxml2iges(const char* dir_path)
             {
                 int old_point_index = ::atoi(one_point.attribute("id").value());
 
-                std::vector<float> current_point;
+                std::vector<double> current_point;
                 std::stringstream ss(one_point.first_child().value());
                 std::string item;
 
                 while (getline(ss, item, ' ')) {
                     current_point.push_back(::atof(item.c_str()));
                 }
+                //std::cout << "new_point_PRE  " << current_point.at(0) << " " << current_point.at(1) << " " << current_point.at(2) << " " << std::endl;
                 gp_Pnt new_point(current_point.at(0), current_point.at(1), current_point.at(2));
+                //std::cout << "new_point  " << new_point.X() << " " << new_point.Y() << " " << new_point.Z() << " " << std::endl;
                 if (current_point.at(2) < z_min) z_min = current_point.at(2);
                 temp_points.push_back(new_point);
                 //points_list[counter_points] = new_point;
                 old_index2new_index.insert(std::pair<int, int>{old_point_index, counter_points});
                 counter_points++;
             }
-            z_min -= 100.0;
+            z_min -= 2.0;
 
             BRep_Builder builder;
             TopoDS_Shell surface_top_shell;
+            TopoDS_Shell bottom_shell;
+            TopoDS_Wire bottom_wire;
+            builder.MakeWire(bottom_wire);
+            builder.MakeShell(bottom_shell);
             builder.MakeShell(surface_top_shell);
 
             std::vector<std::vector<int>> edges_ones;
@@ -142,57 +151,66 @@ void run_landxml2iges(const char* dir_path)
                 gp_Pnt point_2 = temp_points.at(point_index_2);
                 gp_Pnt point_3 = temp_points.at(point_index_3);
 
+                gp_Pnt point_1_b = temp_points.at(point_index_1);
+                point_1_b.SetZ(z_min);
+                gp_Pnt point_2_b = temp_points.at(point_index_2);
+                point_2_b.SetZ(z_min);
+                gp_Pnt point_3_b = temp_points.at(point_index_3);
+                point_3_b.SetZ(z_min);
+
                 TopoDS_Vertex vertex1 = BRepBuilderAPI_MakeVertex(point_1);
                 TopoDS_Vertex vertex2 = BRepBuilderAPI_MakeVertex(point_2);
                 TopoDS_Vertex vertex3 = BRepBuilderAPI_MakeVertex(point_3);
+
+                TopoDS_Vertex vertex1_b = BRepBuilderAPI_MakeVertex(point_1_b);
+                TopoDS_Vertex vertex2_b = BRepBuilderAPI_MakeVertex(point_2_b);
+                TopoDS_Vertex vertex3_b = BRepBuilderAPI_MakeVertex(point_3_b);
 
                 TopoDS_Edge edge1 = BRepBuilderAPI_MakeEdge(vertex1, vertex2);
                 TopoDS_Edge edge2 = BRepBuilderAPI_MakeEdge(vertex1, vertex3);
                 TopoDS_Edge edge3 = BRepBuilderAPI_MakeEdge(vertex2, vertex3);
 
+                TopoDS_Edge edge1_b = BRepBuilderAPI_MakeEdge(vertex1_b, vertex2_b);
+                TopoDS_Edge edge2_b = BRepBuilderAPI_MakeEdge(vertex1_b, vertex3_b);
+                TopoDS_Edge edge3_b = BRepBuilderAPI_MakeEdge(vertex2_b, vertex3_b);
 
                 std::vector<int> points_egde_1{ point_index_1,point_index_2 };
                 std::vector<int> points_egde_2{ point_index_1,point_index_3 };
                 std::vector<int> points_egde_3{ point_index_2,point_index_3 };
-                insert_edge_if_not_in(&edges_ones, &points_egde_1);
-                insert_edge_if_not_in(&edges_ones, &points_egde_2);
-                insert_edge_if_not_in(&edges_ones, &points_egde_3);
+                edges_ones.push_back(points_egde_1);
+                edges_ones.push_back(points_egde_2);
+                edges_ones.push_back(points_egde_3);
 
                 TopoDS_Wire triangle_wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3);
                 TopoDS_Face triangle_face = BRepBuilderAPI_MakeFace(triangle_wire);
                 builder.Add(surface_top_shell, triangle_face);
-            }
-            
-            //
-            std::cout << "start vis" << std::endl;
-            TopoDS_Wire bottom_wire_TEMP;
-            builder.MakeWire(bottom_wire_TEMP);
-            
-            for (std::vector<int> one_bound_edge : edges_ones)
-            {
-                gp_Pnt point_1_bottom = temp_points.at(one_bound_edge.at(0));
-                point_1_bottom.SetZ(z_min);
-                TopoDS_Vertex vertex1_bottom = BRepBuilderAPI_MakeVertex(point_1_bottom);
-                gp_Pnt point_2_bottom = temp_points.at(one_bound_edge.at(0));
-                point_2_bottom.SetZ(z_min);
-                TopoDS_Vertex vertex2_bottom = BRepBuilderAPI_MakeVertex(point_2_bottom);
 
-                TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(vertex2_bottom, vertex1_bottom);
-                builder.Add(bottom_wire_TEMP, edge);
+                TopoDS_Wire triangle_wire_b = BRepBuilderAPI_MakeWire(edge1_b, edge2_b, edge3_b);
+                TopoDS_Face triangle_face_b = BRepBuilderAPI_MakeFace(triangle_wire_b);
+                builder.Add(bottom_shell, triangle_face_b);
             }
-            //TopoDS_Face bottom_TEMP = BRepBuilderAPI_MakeFace(bottom_wire_TEMP);
-            visualize_figure(&bottom_wire_TEMP);
-            //
-            get_outer_counter(&edges_ones, &edges_external);
+            visualize_figure(&bottom_shell);
+            sort_edges_to_unique(&edges_ones, &edges_external);
+
+            //get_outer_counter(&edges_ones, &edges_external);
+
+            int counter_new_tr = 0;
             for (std::vector<int> one_bound_edge : edges_external)
             {
+                std::cout << "start for " << counter_new_tr << std::endl;
+                std::cout << one_bound_edge.at(0) << " " << one_bound_edge.at(1) << std::endl;
+
                 gp_Pnt point_1 = temp_points.at(one_bound_edge.at(0));
+                
                 gp_Pnt point_1_bottom = temp_points.at(one_bound_edge.at(0));
                 point_1_bottom.SetZ(z_min);
+                std::cout << "point-1 " << point_1.X() << " " << point_1.Y() << " " << point_1_bottom.Z() << " " << std::endl;
 
                 gp_Pnt point_2 = temp_points.at(one_bound_edge.at(1));
+                
                 gp_Pnt point_2_bottom = temp_points.at(one_bound_edge.at(1));
                 point_2_bottom.SetZ(z_min);
+                std::cout << "point-2 " << point_2.X() << " " << point_2.Y() << " " << point_2_bottom.Z() << " " << std::endl;
 
                 TopoDS_Vertex vertex1 = BRepBuilderAPI_MakeVertex(point_1);
                 TopoDS_Vertex vertex1_bottom = BRepBuilderAPI_MakeVertex(point_1_bottom);
@@ -201,35 +219,56 @@ void run_landxml2iges(const char* dir_path)
 
                 TopoDS_Edge edge1 = BRepBuilderAPI_MakeEdge(vertex1, vertex2);
                 TopoDS_Edge edge2 = BRepBuilderAPI_MakeEdge(vertex2, vertex2_bottom);
-                TopoDS_Edge edge4 = BRepBuilderAPI_MakeEdge(vertex1_bottom, vertex1);
                 TopoDS_Edge edge3 = BRepBuilderAPI_MakeEdge(vertex2_bottom, vertex1_bottom);
+                TopoDS_Edge edge4 = BRepBuilderAPI_MakeEdge(vertex1_bottom, vertex1);
+                
 
                 TopoDS_Wire triangle_wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
                 TopoDS_Face triangle_face = BRepBuilderAPI_MakeFace(triangle_wire);
-
                 builder.Add(surface_top_shell, triangle_face);
+                builder.Add(bottom_wire, edge3);
+                counter_new_tr++;
+                
             }
-            TopoDS_Wire bottom_wire;
-            builder.MakeWire(bottom_wire);
-            for (std::vector<int> one_bound_edge : edges_external)
-            {
-                gp_Pnt point_1_bottom = temp_points.at(one_bound_edge.at(0));
-                point_1_bottom.SetZ(z_min);
-                TopoDS_Vertex vertex1_bottom = BRepBuilderAPI_MakeVertex(point_1_bottom);
-                gp_Pnt point_2_bottom = temp_points.at(one_bound_edge.at(0));
-                point_2_bottom.SetZ(z_min);
-                TopoDS_Vertex vertex2_bottom = BRepBuilderAPI_MakeVertex(point_2_bottom);
+            std::cout << "end" << std::endl;
+            visualize_figure(&bottom_wire);
+            //builder.Add(bottom_shell, bottom_wire);
+            TopoDS_Face bottom_face = BRepBuilderAPI_MakeFace(bottom_wire, false);
+            visualize_figure(&bottom_face);
 
-                TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(vertex2_bottom, vertex1_bottom);
-                builder.Add(bottom_wire, edge);
-            }
-            builder.Add(surface_top_shell, bottom_wire);
+            
+            //visualize_figure(&surface_top_shell);
             //проверить замкнутая ли структура .... 
-            TopoDS_Solid solid = BRepBuilderAPI_MakeSolid(surface_top_shell);
+            ShapeFix_Shell my_shell(surface_top_shell);
+            my_shell.Perform();
 
+            /*TopoDS_Shell fixed_shell;
+            builder.MakeShell(fixed_shell);
+            my_shell.FixFaceOrientation(fixed_shell);
+            visualize_figure(&fixed_shell);*/
+
+            TopoDS_Shell shell_new = my_shell.Shell();
+            visualize_figure(&shell_new);
+
+            TopoDS_Solid pre_solid;
+            builder.MakeSolid(pre_solid);
+            builder.Add(pre_solid, surface_top_shell);
+            
+            //builder.Add(pre_solid, bottom_shell);
+            ShapeFix_Solid my_solid(pre_solid);
+            const Message_ProgressRange mes;
+            bool shell_progress = my_solid.Perform(mes);
+            
+            TopoDS_Shape solid = my_solid.Solid();
+            visualize_figure(&solid);
+
+            //TopoDS_Solid solid = BRepBuilderAPI_MakeSolid(surface_top_shell);
+            auto is_closed = solid.Closed();
+            std::cout << "is_closed " << is_closed << std::endl;
+            
             //запись в IGES
             std::string surface_name_str = surface_name;
-            std::string save_file_path = ReplaceAll(dir_path, ".xml", "_" + surface_name_str + ".xml");
+            std::string save_file_path = ReplaceAll(dir_path, ".xml", "_" + surface_name_str + ".iges");
             IGESControl_Controller::Init();
             IGESControl_Writer ICW(save_file_path.c_str(), 0);
             //creates a writer object for writing in Face mode with  millimeters 
@@ -237,7 +276,10 @@ void run_landxml2iges(const char* dir_path)
             ICW.AddShape(solid);
             //adds shape sh to IGES model 
             ICW.ComputeModel();
+            bool check_status_write;
             Standard_Boolean OK = ICW.Write(save_file_path.c_str());
+            //std::cout << "check_status_write " << check_status_write << std::endl;
+            std::cout << "check_status_write OK " << OK << std::endl;
             //writes a model to the file MyFile.igs 
         }
     }
