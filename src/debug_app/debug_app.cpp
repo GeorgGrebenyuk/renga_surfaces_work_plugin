@@ -3,10 +3,12 @@
 
 #include <iostream>
 #include "external_functions.h"
+#include <math.h>
 
 int main()
 {
-    run_landxml2iges("C:\\Users\\Georg\\Documents\\GitHub\\renga_surfaces_work_plugin\\test_data\\push_15_test.xml");
+    double offs[4]{ 2324001.770, 606500.200,0,3.0466/180.0*3.14159265 };
+    run_landxml2iges("C:\\Users\\Georg\\Documents\\GitHub\\renga_surfaces_work_plugin\\test_data\\push_15_test.xml", offs);
     std::cout << "Hello World!\n";
     return 0;
 }
